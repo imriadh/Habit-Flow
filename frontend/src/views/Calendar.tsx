@@ -89,7 +89,7 @@ export function CalendarView() {
   const selIsFuture = selected > tk;
   const win = dayWin(state, selDate);
   const dueSel = state.habits
-    .filter((h) => h.status !== "archived" && h.status === "active" && isScheduled(h, selDate))
+    .filter((h) => h.status === "active" && isScheduled(h, selDate))
     .filter((h) => filter === "all" || h.id === filter);
 
   const toggle = (h: Habit) => {
@@ -102,7 +102,7 @@ export function CalendarView() {
     if (selected === tk) {
       const cs = currentStreak(h, { ...state.logs, [logKey(h.id, selected)]: { done: true } });
       toast(cs >= 2 ? `${h.name} done — ${cs}-day streak!` : `${h.name} done.`, "ok");
-    } else toast(`${h.name} marked for ${fmtShort(selDate)}.`, "ok");
+    } else toast(`${h.name} marked for ${selDate.getDate()} ${MONTHS[selDate.getMonth()].slice(0, 3)}.`, "ok");
   };
 
   const bump = (h: Habit, delta: number) => {
@@ -118,24 +118,21 @@ export function CalendarView() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="stack-l">
       <Reveal>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="row wrap spread">
           <div>
-            <h2 className="disp text-2xl font-extrabold tracking-tight sm:text-3xl">
-              {MONTHS[month.getMonth()]} <span className="text-[var(--mut)]">{month.getFullYear()}</span>
+            <h2 className="h1">
+              {MONTHS[month.getMonth()]} <span className="muted">{month.getFullYear()}</span>
             </h2>
-            <p className="mt-0.5 text-sm font-medium text-[var(--mut)]">
-              {monthRate === null ? "Nothing scheduled this month." : `${pct(monthRate)} of scheduled check-ins completed${filter !== "all" ? " for this habit" : ""}.`}
+            <p className="txt-s muted mt-s">
+              {monthRate === null
+                ? "Nothing scheduled this month."
+                : `${pct(monthRate)} of scheduled check-ins completed${filter !== "all" ? " for this habit" : ""}.`}
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            <select
-              className="input !w-auto !py-2 text-[13px] font-semibold"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              aria-label="Filter calendar by habit"
-            >
+          <div className="row-s wrap">
+            <select className="input" style={{ width: "auto", padding: "8px 10px", fontSize: 13, fontWeight: 600 }} value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter calendar by habit">
               <option value="all">All habits</option>
               {state.habits.filter((h) => h.status !== "archived").map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
@@ -145,7 +142,7 @@ export function CalendarView() {
               <Icon name="chevL" size={17} />
             </button>
             <button
-              className="btn btn-ghost !px-3 !py-2 !text-[13px]"
+              className="btn btn-ghost btn-s"
               onClick={() => {
                 const t = today();
                 setMonth(new Date(t.getFullYear(), t.getMonth(), 1));
@@ -161,24 +158,22 @@ export function CalendarView() {
         </div>
       </Reveal>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_330px]">
+      <div className="split">
         <Reveal delay={60}>
-          <section className="card p-4 sm:p-5" aria-label="Month grid">
-            <div className="mb-2 grid grid-cols-7 gap-1.5">
+          <section className="card pad-l" aria-label="Month grid">
+            <div className="cal-grid mb-s">
               {dayOrder.map((d) => (
-                <div key={d} className="text-center text-[11px] font-bold uppercase tracking-wider text-[var(--mut)]">
-                  {WEEKDAYS_SHORT[d]}
-                </div>
+                <div key={d} className="cal-head">{WEEKDAYS_SHORT[d]}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="cal-grid">
               {cells.map((c, i) =>
                 c === null ? (
                   <div key={`x${i}`} />
                 ) : (
                   <button
                     key={c.k}
-                    className={`cal-cell ${selected === c.k ? "!shadow-[var(--shadow-lg)]" : ""}`}
+                    className="cal-cell"
                     style={{
                       ...cellStyle(c.d, c.k).style,
                       outline: isToday(c.d)
@@ -194,67 +189,66 @@ export function CalendarView() {
                     aria-label={fmtLong(c.d)}
                   >
                     {c.d.getDate()}
-                    {cellStyle(c.d, c.k).dot && (
-                      <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full" style={{ background: cellStyle(c.d, c.k).dot! }} />
-                    )}
+                    {cellStyle(c.d, c.k).dot && <span className="cal-dot" style={{ background: cellStyle(c.d, c.k).dot! }} />}
                   </button>
                 )
               )}
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--line)] pt-3.5 text-[11px] font-semibold text-[var(--mut)]">
-              <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[var(--leaf)]" /> All done</span>
-              <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[var(--gold)]" /> Partial</span>
-              <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[var(--coral)]" /> Missed</span>
-              <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[var(--line2)]" /> Not scheduled</span>
+            <div className="legend">
+              <span><span className="legend-dot" style={{ background: "var(--leaf)" }} />All done</span>
+              <span><span className="legend-dot" style={{ background: "var(--gold)" }} />Partial</span>
+              <span><span className="legend-dot" style={{ background: "var(--coral)" }} />Missed</span>
+              <span><span className="legend-dot" style={{ background: "var(--line2)" }} />Not scheduled</span>
             </div>
           </section>
         </Reveal>
 
         <Reveal delay={120}>
-          <section className="card p-5" aria-label="Day details">
+          <section className="card pad-l" aria-label="Day details">
             <p className="tag">{selIsFuture ? "Upcoming" : win === true ? "Perfect day" : win === false ? "Incomplete" : "Rest day"}</p>
-            <h3 className="disp mt-1 text-xl font-extrabold leading-tight">{fmtLong(selDate)}</h3>
+            <h3 className="h2 mt-s">{fmtLong(selDate)}</h3>
 
             {!selIsFuture && dueSel.length > 0 && (
-              <p className="mt-1 text-[13px] font-semibold text-[var(--mut)]">
+              <p className="txt-s bold muted mt-s">
                 {dueSel.filter((h) => dayState(h, selDate, habitLog(state.logs, h.id, selected)) === "done").length} of {dueSel.length} completed
               </p>
             )}
 
-            <ul className="mt-4 space-y-2">
+            <div className="stack-s mt-m">
               {dueSel.length === 0 && (
-                <li className="rounded-xl border border-dashed border-[var(--line2)] px-4 py-6 text-center text-[13px] font-medium text-[var(--mut)]">
+                <div style={{ border: "1.5px dashed var(--line2)", borderRadius: 12, padding: "24px 16px", textAlign: "center", fontSize: 13, fontWeight: 500, color: "var(--mut)" }}>
                   {selIsFuture ? "Nothing scheduled yet." : "No habits were scheduled this day."}
-                </li>
+                </div>
               )}
               {dueSel.map((h) => {
                 const st = dayState(h, selDate, habitLog(state.logs, h.id, selected));
                 const log = habitLog(state.logs, h.id, selected);
                 const c = HABIT_COLORS[h.color] ?? HABIT_COLORS.leaf;
-                const meta = {
-                  done: ["Done", "var(--leaf-soft)", "var(--leaf-deep)"],
-                  partial: [`Partial${h.goal ? ` · ${log?.value ?? 0}/${h.goal.value}` : ""}`, "var(--gold-soft)", "var(--gold-deep)"],
-                  skipped: ["Skipped", "var(--pine-soft)", "var(--pine-deep)"],
-                  missed: ["Missed", "var(--coral-soft)", "var(--coral-deep)"],
-                  pending: ["Pending", "var(--surface2)", "var(--mut)"],
-                  unscheduled: ["—", "var(--surface2)", "var(--mut)"],
-                  future: ["Upcoming", "var(--surface2)", "var(--mut)"],
-                }[st];
+                const meta: [string, string, string] =
+                  st === "done"
+                    ? ["Done", "var(--leaf-soft)", "var(--leaf-deep)"]
+                    : st === "partial"
+                      ? [`Partial${h.goal ? ` · ${log?.value ?? 0}/${h.goal.value}` : ""}`, "var(--gold-soft)", "var(--gold-deep)"]
+                      : st === "skipped"
+                        ? ["Skipped", "var(--pine-soft)", "var(--pine-deep)"]
+                        : st === "missed"
+                          ? ["Missed", "var(--coral-soft)", "var(--coral-deep)"]
+                          : ["Pending", "var(--surface2)", "var(--mut)"];
                 return (
-                  <li key={h.id} className="rounded-xl border border-[var(--line)] p-3 transition-shadow hover:shadow-[var(--shadow)]">
-                    <div className="flex items-center gap-2.5">
-                      <span className="tile !h-9 !w-9 !rounded-lg" style={{ background: c.soft, color: c.deep }}>
+                  <div key={h.id} className="day-item">
+                    <div className="row-s">
+                      <span className="tile tile-s" style={{ background: c.soft, color: c.deep }}>
                         <Icon name={h.icon} size={16} />
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-bold leading-tight">{h.name}</p>
-                        <span className="mt-0.5 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold" style={{ background: meta[1] as string, color: meta[2] as string }}>
+                      <div className="grow">
+                        <p className="bold txt-s clip" style={{ lineHeight: 1.25 }}>{h.name}</p>
+                        <span className="badge mt-s" style={{ background: meta[1], color: meta[2], fontSize: 10, padding: "2px 8px" }}>
                           {meta[0]}
                         </span>
                       </div>
-                      {!selIsFuture && h.status === "active" && st !== "skipped" && (
+                      {!selIsFuture && st !== "skipped" && (
                         <button
-                          className={`checkbtn !h-8 !w-8 !rounded-lg ${st === "done" ? "on" : ""}`}
+                          className={`checkbtn checkbtn-sm ${st === "done" ? "on" : ""}`}
                           style={{ ["--cb" as never]: c.base }}
                           onClick={() => toggle(h)}
                           aria-pressed={st === "done"}
@@ -265,33 +259,34 @@ export function CalendarView() {
                       )}
                     </div>
                     {!selIsFuture && h.goal && st !== "skipped" && (
-                      <div className="mt-2.5 flex items-center gap-2">
-                        <button className="step-btn !h-7 !w-7" onClick={() => bump(h, -1)} aria-label="Decrease">
+                      <div className="row-xs mt-s">
+                        <button className="step-btn" style={{ width: 27, height: 27 }} onClick={() => bump(h, -1)} aria-label="Decrease">
                           <Icon name="minus" size={12} sw={2.6} />
                         </button>
-                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--ring-track)]">
-                          <div
-                            className="h-full rounded-full transition-all duration-300"
-                            style={{ width: `${Math.min(100, ((log?.value ?? 0) / h.goal.value) * 100)}%`, background: c.base }}
-                          />
+                        <div className="bar grow" style={{ height: 6 }}>
+                          <span className="bar-i" style={{ width: `${Math.min(100, ((log?.value ?? 0) / h.goal.value) * 100)}%`, background: c.base }} />
                         </div>
-                        <span className="num w-7 text-center text-sm">{log?.value ?? 0}</span>
-                        <button className="step-btn !h-7 !w-7" onClick={() => bump(h, 1)} aria-label="Increase">
+                        <span className="num txt-s" style={{ width: 24, textAlign: "center" }}>{log?.value ?? 0}</span>
+                        <button className="step-btn" style={{ width: 27, height: 27 }} onClick={() => bump(h, 1)} aria-label="Increase">
                           <Icon name="plus" size={12} sw={2.6} />
                         </button>
                       </div>
                     )}
-                    {!selIsFuture && h.status === "active" && (
-                      <button className="mt-2 text-[11px] font-bold text-[var(--mut)] underline-offset-2 hover:text-[var(--gold-deep)] hover:underline" onClick={() => skipDay(h)}>
+                    {!selIsFuture && (
+                      <button
+                        className="txt-xs bold muted mt-s"
+                        style={{ border: "none", background: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}
+                        onClick={() => skipDay(h)}
+                      >
                         {st === "skipped" ? "Undo skip" : "Mark as skipped"}
                       </button>
                     )}
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
 
-            <p className="mt-4 border-t border-[var(--line)] pt-3 text-[11px] font-medium text-[var(--mut)]">
+            <p className="card-foot txt-xs muted">
               Tip: click any past day to fix history — streaks and stats update instantly.
             </p>
           </section>
@@ -299,8 +294,4 @@ export function CalendarView() {
       </div>
     </div>
   );
-}
-
-function fmtShort(d: Date) {
-  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
 }

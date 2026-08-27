@@ -56,6 +56,7 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
   const c = HABIT_COLORS[h.color] ?? HABIT_COLORS.leaf;
   const tk = dkey(today());
   const stToday = dayState(h, today(), habitLog(state.logs, h.id, tk));
+  void stToday;
 
   const cellStyle = (st: string): CSSProperties => {
     switch (st) {
@@ -75,54 +76,60 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
   };
 
   return (
-    <div className="space-y-5">
+    <div className="stack-l">
       <Reveal>
-        <button className="flex items-center gap-2 text-sm font-bold text-[var(--mut)] transition-colors hover:text-[var(--ink)]" onClick={() => nav({ name: "habits" })}>
-          <Icon name="arrowL" size={16} /> All habits
+        <button className="btn btn-ghost btn-s" onClick={() => nav({ name: "habits" })}>
+          <Icon name="arrowL" size={14} /> All habits
         </button>
       </Reveal>
 
       {/* header */}
       <Reveal delay={50}>
-        <section className="card p-5 sm:p-6">
-          <div className="flex flex-wrap items-start gap-4">
-            <span className="tile !h-14 !w-14 !rounded-2xl" style={{ background: c.soft, color: c.deep }}>
+        <section className="card pad-xl">
+          <div className="row-l wrap top">
+            <span className="tile tile-l" style={{ background: c.soft, color: c.deep }}>
               <Icon name={h.icon} size={26} />
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="disp text-2xl font-extrabold tracking-tight sm:text-3xl">{h.name}</h2>
-                <span className="chip !cursor-default" style={{ background: h.status === "active" ? "var(--leaf-soft)" : "var(--gold-soft)", color: h.status === "active" ? "var(--leaf-deep)" : "var(--gold-deep)", borderColor: "transparent" }}>
+            <div className="grow stack-xs" style={{ minWidth: 240 }}>
+              <div className="row-s wrap">
+                <h2 className="h1">{h.name}</h2>
+                <span className="badge" style={{ background: h.status === "active" ? "var(--leaf-soft)" : "var(--gold-soft)", color: h.status === "active" ? "var(--leaf-deep)" : "var(--gold-deep)" }}>
                   {h.status === "active" ? "Active" : h.status === "paused" ? "Paused" : "Archived"}
                 </span>
               </div>
-              {h.description && <p className="mt-1 max-w-xl text-sm text-[var(--ink2)]">{h.description}</p>}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="chip !cursor-default" style={{ background: CATEGORIES[h.category].soft, color: CATEGORIES[h.category].deep, borderColor: "transparent" }}>
+              {h.description && <p className="txt-s soft" style={{ maxWidth: 560 }}>{h.description}</p>}
+              <div className="row-xs wrap mt-s">
+                <span className="chip chip-static" style={{ background: CATEGORIES[h.category].soft, color: CATEGORIES[h.category].deep, borderColor: "transparent" }}>
                   <Icon name={CATEGORIES[h.category].icon} size={12} /> {CATEGORIES[h.category].label}
                 </span>
-                <span className="chip !cursor-default"><Icon name="calendar" size={12} /> {fmtSchedule(h.weekdays)}</span>
-                {h.goal && <span className="chip !cursor-default"><Icon name="target" size={12} /> {h.goal.value} {h.goal.unit} / day</span>}
-                {h.reminder && <span className="chip !cursor-default"><Icon name="bell" size={12} /> {h.reminder}</span>}
-                <span className="chip !cursor-default"><Icon name="clock" size={12} /> since {fmtMedium(parseKey(h.startDate))}</span>
+                <span className="chip chip-static"><Icon name="calendar" size={12} /> {fmtSchedule(h.weekdays)}</span>
+                {h.goal && <span className="chip chip-static"><Icon name="target" size={12} /> {h.goal.value} {h.goal.unit} / day</span>}
+                {h.reminder && <span className="chip chip-static"><Icon name="bell" size={12} /> {h.reminder}</span>}
+                <span className="chip chip-static"><Icon name="clock" size={12} /> since {fmtMedium(parseKey(h.startDate))}</span>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="btn btn-ghost !px-3.5 !text-[13px]" onClick={() => onEdit(h.id)}>
+            <div className="row-s wrap">
+              <button className="btn btn-ghost btn-s" onClick={() => onEdit(h.id)}>
                 <Icon name="pencil" size={14} /> Edit
               </button>
               {h.status !== "archived" && (
-                <button className="btn btn-ghost !px-3.5 !text-[13px]" onClick={() => { updateHabit(h.id, { status: h.status === "paused" ? "active" : "paused" }); toast(h.status === "paused" ? "Resumed." : "Paused — history kept.", "info"); }}>
+                <button
+                  className="btn btn-ghost btn-s"
+                  onClick={() => {
+                    updateHabit(h.id, { status: h.status === "paused" ? "active" : "paused" });
+                    toast(h.status === "paused" ? "Resumed." : "Paused — history kept.", "info");
+                  }}
+                >
                   <Icon name={h.status === "paused" ? "play" : "pause"} size={14} />
                   {h.status === "paused" ? "Resume" : "Pause"}
                 </button>
               )}
               {h.status !== "archived" && (
-                <button className="btn btn-ghost !px-3.5 !text-[13px]" onClick={() => setConfirm("archive")}>
+                <button className="btn btn-ghost btn-s" onClick={() => setConfirm("archive")}>
                   <Icon name="archive" size={14} /> Archive
                 </button>
               )}
-              <button className="btn btn-danger !px-3.5 !text-[13px]" onClick={() => setConfirm("delete")}>
+              <button className="btn btn-danger btn-s" onClick={() => setConfirm("delete")}>
                 <Icon name="trash" size={14} /> Delete
               </button>
             </div>
@@ -131,7 +138,7 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
       </Reveal>
 
       {/* stats tiles */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid-4">
         {[
           { label: "Current streak", value: String(stats.current), suffix: stats.current === 1 ? "day" : "days", icon: "flame", color: "var(--gold)", soft: "var(--gold-soft)" },
           { label: "Longest streak", value: String(stats.longest), suffix: stats.longest === 1 ? "day" : "days", icon: "target", color: c.base, soft: c.soft },
@@ -139,46 +146,46 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
           { label: "Lifetime check-ins", value: String(stats.total), suffix: "completions", icon: "check", color: "var(--leaf)", soft: "var(--leaf-soft)" },
         ].map((s, i) => (
           <Reveal key={s.label} delay={100 + i * 60}>
-            <div className="card hrow p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--mut)]">{s.label}</p>
-                <span className="tile !h-8 !w-8 !rounded-lg" style={{ background: s.soft, color: s.color }}>
+            <div className="card hrow pad">
+              <div className="row-xs spread">
+                <p className="tag">{s.label}</p>
+                <span className="tile tile-s" style={{ background: s.soft, color: s.color }}>
                   <Icon name={s.icon} size={15} />
                 </span>
               </div>
-              <p className="num mt-2 text-3xl leading-none">{s.value}</p>
-              <p className="mt-1 text-xs font-semibold text-[var(--mut)]">{s.suffix}</p>
+              <p className="num" style={{ fontSize: 30, marginTop: 10, lineHeight: 1 }}>{s.value}</p>
+              <p className="txt-xs bold muted mt-s">{s.suffix}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+      <div className="split-wide split">
         {/* heatmap */}
         <Reveal delay={150}>
-          <section className="card p-5" aria-label="History heatmap">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <section className="card pad-l" aria-label="History heatmap">
+            <div className="row spread wrap mb-m">
               <p className="tag">Last 12 weeks</p>
-              <div className="flex items-center gap-3 text-[11px] font-semibold text-[var(--mut)]">
-                <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-[4px]" style={{ background: c.base }} /> Done</span>
-                <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-[4px] bg-[var(--gold)]" /> Partial</span>
-                <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-[4px] bg-[var(--coral-soft)] outline outline-1 -outline-offset-1 outline-[var(--coral)]" /> Missed</span>
+              <div className="legend" style={{ border: "none", margin: 0, padding: 0 }}>
+                <span><span className="legend-dot" style={{ background: c.base }} />Done</span>
+                <span><span className="legend-dot" style={{ background: "var(--gold)" }} />Partial</span>
+                <span><span className="legend-dot" style={{ background: "var(--coral-soft)", outline: "1px solid var(--coral)" }} />Missed</span>
               </div>
             </div>
-            <div className="overflow-x-auto pb-1">
-              <div className="flex min-w-[420px] gap-1.5">
-                <div className="mr-1 flex flex-col justify-between py-0.5 text-[9px] font-bold text-[var(--mut)]">
+            <div className="heat-scroll">
+              <div className="heat">
+                <div className="heat-labels">
                   {[0, 2, 4, 6].map((i) => (
-                    <span key={i} className="h-[13px] leading-[13px]">{WEEKDAYS_SHORT[(i + state.settings.weekStart) % 7]}</span>
+                    <span key={i}>{WEEKDAYS_SHORT[(i + state.settings.weekStart) % 7]}</span>
                   ))}
                 </div>
                 {heat.map((col, ci) => (
-                  <div key={ci} className="flex flex-1 flex-col gap-1.5">
+                  <div key={ci} className="heat-col">
                     {col.map(({ date, st }, ri) => (
                       <div
                         key={ri}
-                        className="w-full rounded-[4px] transition-transform hover:scale-125"
-                        style={{ height: 13, ...cellStyle(st) }}
+                        className="heat-cell"
+                        style={cellStyle(st)}
                         title={`${fmtShort(date)} — ${STATE_META[st]?.label ?? st}`}
                       />
                     ))}
@@ -191,24 +198,26 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
 
         {/* last 14 days */}
         <Reveal delay={210}>
-          <section className="card p-5" aria-label="Recent days">
-            <p className="tag mb-3">Last 14 days</p>
-            <ul className="max-h-[380px] space-y-1 overflow-y-auto pr-1">
-              {[...days].reverse().map(({ date, state: st }) => {
+          <section className="card pad-l" aria-label="Recent days">
+            <p className="tag mb-s">Last 14 days</p>
+            <div className="stack-xs" style={{ maxHeight: 400, overflowY: "auto", paddingRight: 4 }}>
+              {[...days].reverse().map(({ date, st }) => {
                 const meta = STATE_META[st];
                 const log = habitLog(state.logs, h.id, dkey(date));
                 const isT = dkey(date) === tk;
                 return (
-                  <li key={dkey(date)} className={`flex items-center gap-3 rounded-lg px-2.5 py-2 ${isT ? "bg-[var(--surface2)]" : ""}`}>
-                    <span className="w-20 flex-none text-[13px] font-bold">{relDay(date)}</span>
-                    <span className="rounded-md px-2 py-0.5 text-[11px] font-bold" style={{ background: meta.bg, color: meta.color }}>
+                  <div key={dkey(date)} className="row-s" style={{ borderRadius: 9, padding: "7px 10px", background: isT ? "var(--surface2)" : "transparent" }}>
+                    <span className="bold txt-s" style={{ width: 78, flex: "none" }}>{relDay(date)}</span>
+                    <span className="badge" style={{ background: meta.bg, color: meta.color, fontSize: 11 }}>
                       {st === "partial" && h.goal ? `${log?.value ?? 0}/${h.goal.value} ${h.goal.unit}` : meta.label}
                     </span>
-                    {st === "done" && h.goal && <span className="text-[11px] font-semibold text-[var(--mut)]">{log?.value ?? h.goal.value} {h.goal.unit}</span>}
+                    {st === "done" && h.goal && (
+                      <span className="txt-xs bold muted">{log?.value ?? h.goal.value} {h.goal.unit}</span>
+                    )}
                     {isT && h.status === "active" && (
                       <button
-                        className={`checkbtn !h-8 !w-8 !rounded-lg ml-auto ${st === "done" ? "on" : ""}`}
-                        style={{ ["--cb" as never]: c.base }}
+                        className={`checkbtn checkbtn-sm ${st === "done" ? "on" : ""}`}
+                        style={{ ["--cb" as never]: c.base, marginLeft: "auto" }}
                         aria-pressed={st === "done"}
                         aria-label={`Toggle today for ${h.name}`}
                         onClick={() => {
@@ -219,10 +228,10 @@ export function HabitDetail({ id, nav, onEdit }: { id: string; nav: NavFn; onEdi
                         <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
                       </button>
                     )}
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           </section>
         </Reveal>
       </div>

@@ -50,52 +50,44 @@ export function Coach() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="stack-l">
       <Reveal>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="tile !h-11 !w-11 !rounded-xl" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)" }}>
+        <div className="row wrap">
+          <span className="tile tile-l" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)", width: 46, height: 46 }}>
             <Icon name="spark" size={22} />
           </span>
-          <div>
-            <h2 className="disp text-2xl font-extrabold tracking-tight sm:text-3xl">AI Coach</h2>
-            <p className="mt-0.5 text-sm font-medium text-[var(--mut)]">
+          <div className="grow">
+            <h2 className="h1">AI Coach</h2>
+            <p className="txt-s muted mt-s">
               Personal insights from your own data — private, on-device, always honest.
             </p>
           </div>
-          <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--leaf-soft)] px-3 py-1 text-[11px] font-bold text-[var(--leaf-deep)]">
+          <span className="badge" style={{ background: "var(--leaf-soft)", color: "var(--leaf-deep)" }}>
             <Icon name="check" size={12} sw={2.6} /> 100% on-device
           </span>
         </div>
       </Reveal>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="split">
         <Reveal delay={70}>
-          <section className="card flex flex-col overflow-hidden" aria-label="Coach chat">
-            <div ref={scrollRef} className="h-[52vh] min-h-[380px] space-y-4 overflow-y-auto px-5 py-5">
+          <section className="card chat-card" aria-label="Coach chat">
+            <div ref={scrollRef} className="chat-scroll">
               {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`flex max-w-[85%] items-start gap-2.5 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                    {m.role === "coach" && (
-                      <span className="tile mt-0.5 !h-8 !w-8 !rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)" }}>
-                        <Icon name="spark" size={15} />
-                      </span>
-                    )}
-                    <div
-                      className={`px-4 py-3 text-[14px] font-medium leading-relaxed whitespace-pre-line ${
-                        m.role === "user" ? "msg-u" : "msg-a"
-                      }`}
-                    >
-                      {m.text}
-                    </div>
-                  </div>
+                <div key={i} className={`chat-line ${m.role === "user" ? "user" : ""}`}>
+                  {m.role === "coach" && (
+                    <span className="tile tile-s" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)", marginTop: 2 }}>
+                      <Icon name="spark" size={15} />
+                    </span>
+                  )}
+                  <div className={m.role === "user" ? "msg-u" : "msg-a"}>{m.text}</div>
                 </div>
               ))}
               {typing && (
-                <div className="flex items-center gap-2.5">
-                  <span className="tile !h-8 !w-8 !rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)" }}>
+                <div className="chat-line">
+                  <span className="tile tile-s" style={{ background: "var(--gold-soft)", color: "var(--gold-deep)", marginTop: 2 }}>
                     <Icon name="spark" size={15} />
                   </span>
-                  <div className="msg-a flex items-center gap-1.5 px-4 py-3.5">
+                  <div className="msg-a typing-dots">
                     <span className="typing-dot" />
                     <span className="typing-dot" />
                     <span className="typing-dot" />
@@ -104,25 +96,25 @@ export function Coach() {
               )}
             </div>
 
-            <div className="border-t border-[var(--line)] bg-[var(--surface2)] px-4 py-3.5">
-              <div className="mb-2.5 flex flex-wrap gap-1.5">
+            <div className="chat-input-bar">
+              <div className="row-xs wrap mb-s">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} className="chip !text-[12px]" onClick={() => send(s)} disabled={typing}>
+                  <button key={s} className="chip" onClick={() => send(s)} disabled={typing}>
                     <Icon name="spark" size={11} />
                     {s}
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="row-s">
                 <input
-                  className="input flex-1"
+                  className="input grow"
                   placeholder={`Ask about your habits, ${name}…`}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && send()}
                   aria-label="Ask the coach"
                 />
-                <button className="btn btn-primary !px-3.5" onClick={() => send()} aria-label="Send message" disabled={typing}>
+                <button className="btn btn-primary" style={{ padding: "9px 14px" }} onClick={() => send()} aria-label="Send message" disabled={typing}>
                   <Icon name="send" size={17} />
                 </button>
               </div>
@@ -130,62 +122,66 @@ export function Coach() {
           </section>
         </Reveal>
 
-        <div className="space-y-5">
+        <div className="stack">
           <Reveal delay={130}>
-            <section className="card p-5" aria-label="Weekly review">
+            <section className="card pad-l" aria-label="Weekly review">
               <p className="tag">This week's review</p>
-              <div className="mt-3 flex items-center gap-4">
+              <div className="row mt-m" style={{ gap: 16 }}>
                 <Ring value={review.rate ?? 0} size={86} stroke={9} color="var(--gold)">
-                  <span className="num text-lg">{review.rate === null ? "—" : `${Math.round(review.rate * 100)}%`}</span>
+                  <span className="num" style={{ fontSize: 17 }}>{review.rate === null ? "—" : `${Math.round(review.rate * 100)}%`}</span>
                 </Ring>
-                <div className="text-[13px] font-semibold text-[var(--ink2)]">
-                  <p>
-                    {review.done} of {review.scheduled} check-ins
-                  </p>
+                <div className="txt-s bold soft">
+                  <p>{review.done} of {review.scheduled} check-ins</p>
                   {review.delta !== null && (
-                    <p className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${review.delta >= 0 ? "bg-[var(--leaf-soft)] text-[var(--leaf-deep)]" : "bg-[var(--coral-soft)] text-[var(--coral-deep)]"}`}>
+                    <span
+                      className="badge mt-s"
+                      style={{
+                        background: review.delta >= 0 ? "var(--leaf-soft)" : "var(--coral-soft)",
+                        color: review.delta >= 0 ? "var(--leaf-deep)" : "var(--coral-deep)",
+                      }}
+                    >
                       <Icon name={review.delta >= 0 ? "chevR" : "chevD"} size={11} sw={2.4} />
                       {Math.abs(Math.round(review.delta * 100))} pts vs last week
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
-              <dl className="mt-4 space-y-2 text-[13px]">
+              <div className="stack-s mt-m">
                 {[
                   ["Strongest habit", review.strongest?.name ?? "—"],
                   ["Needs attention", review.weakest?.name ?? "—"],
                   ["Best day", review.bestDay !== null ? WEEKDAYS_LONG[review.bestDay] : "—"],
                   ["Weakest day", review.worstDay !== null ? WEEKDAYS_LONG[review.worstDay] : "—"],
                 ].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between gap-3 border-b border-[var(--line)] pb-2 last:border-b-0 last:pb-0">
-                    <dt className="font-semibold text-[var(--mut)]">{k}</dt>
-                    <dd className="font-bold">{v}</dd>
+                  <div key={k} className="row spread" style={{ borderBottom: "1px solid var(--line)", paddingBottom: 8 }}>
+                    <span className="txt-s bold muted">{k}</span>
+                    <span className="txt-s heavy">{v}</span>
                   </div>
                 ))}
-              </dl>
-              <button className="btn btn-ghost mt-4 w-full !text-[13px]" onClick={() => send("How was my week? Give me the full review.")}>
-                <Icon name="spark" size={15} /> Discuss this with the coach
+              </div>
+              <button className="btn btn-ghost btn-s w-full mt-m" onClick={() => send("How was my week? Give me the full review.")}>
+                <Icon name="spark" size={14} /> Discuss this with the coach
               </button>
             </section>
           </Reveal>
 
           <Reveal delay={190}>
-            <section className="card p-5" aria-label="Privacy note">
-              <p className="tag mb-2">How it works</p>
-              <ul className="space-y-2.5 text-[13px] font-medium text-[var(--ink2)]">
+            <section className="card pad-l" aria-label="Privacy note">
+              <p className="tag mb-s">How it works</p>
+              <div className="stack-s">
                 {[
                   ["search", "The coach scans your logs for patterns — weekday vs weekend, 7-day slides, weak days."],
                   ["leaf", "Everything runs in your browser. No data is sent to any server."],
                   ["user", "It advises; you decide. Suggestions never change your habits automatically."],
                 ].map(([ic, txt]) => (
-                  <li key={ic} className="flex items-start gap-2.5">
-                    <span className="tile mt-0.5 !h-7 !w-7 !rounded-lg" style={{ background: "var(--teal-soft)", color: "var(--teal-deep)" }}>
+                  <div key={ic} className="row-s top">
+                    <span className="tile tile-s" style={{ background: "var(--teal-soft)", color: "var(--teal-deep)", marginTop: 2 }}>
                       <Icon name={ic} size={13} />
                     </span>
-                    {txt}
-                  </li>
+                    <p className="txt-s soft">{txt}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
           </Reveal>
         </div>

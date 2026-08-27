@@ -90,9 +90,11 @@ export function HabitModal({
     onClose();
   };
 
+  const cc = HABIT_COLORS[color];
+
   return (
     <Modal open={open} onClose={onClose} title={initial ? "Edit habit" : "New habit"} wide>
-      <div className="space-y-5">
+      <div className="stack-l">
         <div>
           <label className="label" htmlFor="hf-name">Name</label>
           <input
@@ -107,10 +109,12 @@ export function HabitModal({
         </div>
 
         <div>
-          <label className="label" htmlFor="hf-desc">Description <span className="normal-case font-medium text-[var(--mut)]">(optional)</span></label>
+          <label className="label" htmlFor="hf-desc">
+            Description <span className="label-note">— optional</span>
+          </label>
           <textarea
             id="hf-desc"
-            className="input min-h-[64px] resize-y"
+            className="input"
             placeholder="Why does this habit matter to you?"
             value={description}
             maxLength={160}
@@ -120,13 +124,18 @@ export function HabitModal({
 
         <div>
           <span className="label">Category</span>
-          <div className="flex flex-wrap gap-2">
+          <div className="row-xs wrap">
             {(Object.keys(CATEGORIES) as CategoryId[]).map((c) => (
               <button
                 key={c}
                 type="button"
-                className={`chip !px-3 !py-2 ${category === c ? "!border-transparent" : ""}`}
-                style={category === c ? { background: CATEGORIES[c].soft, color: CATEGORIES[c].deep, borderColor: "transparent" } : undefined}
+                className="chip"
+                style={
+                  category === c
+                    ? { background: CATEGORIES[c].soft, color: CATEGORIES[c].deep, borderColor: "transparent", padding: "8px 12px" }
+                    : { padding: "8px 12px" }
+                }
+                aria-pressed={category === c}
                 onClick={() => {
                   setCategory(c);
                   setIcon(CATEGORIES[c].icon);
@@ -139,19 +148,19 @@ export function HabitModal({
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid-2">
           <div>
             <span className="label">Icon</span>
-            <div className="grid grid-cols-6 gap-1.5">
+            <div className="icon-grid">
               {HABIT_ICONS.map((ic) => (
                 <button
                   key={ic}
                   type="button"
-                  className="grid h-10 place-items-center rounded-lg border transition-all"
+                  className="icon-cell"
                   style={{
-                    borderColor: icon === ic ? HABIT_COLORS[color].base : "var(--line)",
-                    background: icon === ic ? HABIT_COLORS[color].soft : "var(--surface)",
-                    color: icon === ic ? HABIT_COLORS[color].deep : "var(--mut)",
+                    borderColor: icon === ic ? cc.base : "var(--line)",
+                    background: icon === ic ? cc.soft : "var(--surface)",
+                    color: icon === ic ? cc.deep : "var(--mut)",
                   }}
                   onClick={() => setIcon(ic)}
                   aria-label={`Icon ${ic}`}
@@ -164,12 +173,12 @@ export function HabitModal({
           </div>
           <div>
             <span className="label">Color</span>
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="row-s wrap pt-m">
               {Object.entries(HABIT_COLORS).map(([k, c]) => (
                 <button
                   key={k}
                   type="button"
-                  className="grid h-9 w-9 place-items-center rounded-full text-white transition-transform hover:scale-110"
+                  className="swatch"
                   style={{ background: c.base, outline: color === k ? "2px solid var(--ink)" : "none", outlineOffset: 3 }}
                   onClick={() => setColor(k)}
                   aria-label={`Color ${c.label}`}
@@ -184,18 +193,18 @@ export function HabitModal({
 
         <div>
           <span className="label">Schedule</span>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="row-xs wrap">
             {DAY_ORDER.map((d) => {
               const on = weekdays.includes(d);
               return (
                 <button
                   key={d}
                   type="button"
-                  className="h-10 min-w-[52px] flex-1 rounded-lg border text-[13px] font-bold transition-all"
+                  className="day-btn"
                   style={{
-                    borderColor: on ? HABIT_COLORS[color].base : "var(--line)",
-                    background: on ? HABIT_COLORS[color].soft : "var(--surface)",
-                    color: on ? HABIT_COLORS[color].deep : "var(--mut)",
+                    borderColor: on ? cc.base : "var(--line)",
+                    background: on ? cc.soft : "var(--surface)",
+                    color: on ? cc.deep : "var(--mut)",
                   }}
                   onClick={() => setWeekdays((w) => (on ? w.filter((x) => x !== d) : [...w, d]))}
                   aria-pressed={on}
@@ -205,23 +214,24 @@ export function HabitModal({
               );
             })}
           </div>
-          <p className="mt-1.5 text-xs text-[var(--mut)]">
+          <p className="txt-xs muted mt-s">
             {weekdays.length === 7 ? "Every day — the classic streak builder." : `${weekdays.length} day${weekdays.length === 1 ? "" : "s"} per week.`}
           </p>
         </div>
 
-        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface2)] p-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="goal-box">
+          <div className="row spread">
             <div>
-              <p className="text-sm font-bold">Measurable target</p>
-              <p className="text-xs text-[var(--mut)]">Track a number instead of a checkbox — e.g. 8 glasses of water.</p>
+              <p className="txt-s bold">Measurable target</p>
+              <p className="txt-xs muted">Track a number instead of a checkbox — e.g. 8 glasses of water.</p>
             </div>
             <Toggle checked={goalOn} onChange={setGoalOn} label="Measurable target" />
           </div>
           {goalOn && (
-            <div className="mt-3 flex gap-2">
+            <div className="row-s mt-s">
               <input
-                className="input !w-24"
+                className="input"
+                style={{ width: 96 }}
                 type="number"
                 min="1"
                 value={goalValue}
@@ -229,7 +239,7 @@ export function HabitModal({
                 aria-label="Target value"
               />
               <input
-                className="input flex-1"
+                className="input grow"
                 placeholder="unit — glasses, minutes, pages…"
                 value={goalUnit}
                 maxLength={20}
@@ -240,24 +250,33 @@ export function HabitModal({
           )}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid-2">
           <div>
-            <label className="label" htmlFor="hf-rem">Reminder time <span className="normal-case font-medium text-[var(--mut)]">(optional)</span></label>
+            <label className="label" htmlFor="hf-rem">
+              Reminder time <span className="label-note">— optional</span>
+            </label>
             <input id="hf-rem" className="input" type="time" value={reminder} onChange={(e) => setReminder(e.target.value)} />
           </div>
           <div>
             <label className="label" htmlFor="hf-start">Start date</label>
-            <input id="hf-start" className="input" type="date" value={startDate} max={dkey(today())} onChange={(e) => e.target.value && setStartDate(e.target.value)} />
+            <input
+              id="hf-start"
+              className="input"
+              type="date"
+              value={startDate}
+              max={dkey(today())}
+              onChange={(e) => e.target.value && setStartDate(e.target.value)}
+            />
           </div>
         </div>
 
         {err && (
-          <p className="flex items-center gap-2 rounded-lg bg-[var(--coral-soft)] px-3 py-2 text-[13px] font-semibold text-[var(--coral-deep)]">
+          <p className="form-err">
             <Icon name="alert" size={15} /> {err}
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--line)] pt-4">
+        <div className="modal-foot">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={save}>
             <Icon name={initial ? "check" : "plus"} size={16} sw={2.4} />

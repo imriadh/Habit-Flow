@@ -18,14 +18,12 @@ export function Ring({
   stroke = 10,
   color = "var(--leaf)",
   children,
-  className = "",
 }: {
   value: number; // 0..1
   size?: number;
   stroke?: number;
   color?: string;
   children?: ReactNode;
-  className?: string;
 }) {
   const [v, setV] = useState(0);
   useEffect(() => {
@@ -36,12 +34,11 @@ export function Ring({
   const c = 2 * Math.PI * r;
   return (
     <div
-      className={`relative grid place-items-center ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, position: "relative", display: "grid", placeItems: "center" }}
       role="img"
       aria-label={`${Math.round(value * 100)} percent`}
     >
-      <svg width={size} height={size} className="-rotate-90">
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--ring-track)" strokeWidth={stroke} />
         <circle
           cx={size / 2}
@@ -56,7 +53,7 @@ export function Ring({
           style={{ transition: "stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)" }}
         />
       </svg>
-      <div className="absolute inset-0 grid place-items-center">{children}</div>
+      <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{children}</div>
     </div>
   );
 }
@@ -82,14 +79,12 @@ export function Bars({
   }, [data]);
   return (
     <div>
-      <div className="flex items-end gap-2" style={{ height }}>
+      <div className="bars-wrap" style={{ height }}>
         {data.map((d, i) => (
-          <div key={i} className="group relative flex-1 flex flex-col justify-end h-full">
-            <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded-md bg-[var(--ink)] px-2 py-0.5 text-[11px] font-semibold text-[var(--bg)] opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-              {d.value === null ? "no data" : pct(d.value)}
-            </div>
+          <div key={i} className="bar-col">
+            <div className="bar-tip">{d.value === null ? "no data" : pct(d.value)}</div>
             <div
-              className="w-full rounded-t-[6px] rounded-b-[3px] min-h-[3px] transition-all duration-700 ease-out"
+              className="bar-rect"
               style={{
                 height: on ? `${Math.max(4, (d.value ?? 0) * 100)}%` : "3px",
                 background: d.value === null ? "var(--ring-track)" : d.highlight ? highlightColor : color,
@@ -100,12 +95,9 @@ export function Bars({
           </div>
         ))}
       </div>
-      <div className="mt-2 flex gap-2">
+      <div className="bar-labels">
         {data.map((d, i) => (
-          <div
-            key={i}
-            className={`flex-1 text-center text-[10px] font-semibold tracking-wide ${d.highlight ? "text-[var(--gold-deep)]" : "text-[var(--mut)]"}`}
-          >
+          <div key={i} className={`bar-label ${d.highlight ? "hl" : ""}`}>
             {d.label}
           </div>
         ))}
@@ -137,16 +129,16 @@ export function Modal({
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-[rgba(10,16,11,0.5)]" onClick={onClose} />
-      <div className={`modal-in card relative w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--line)] bg-[var(--surface)] px-6 py-4 rounded-t-[14px]">
-          <h2 className="disp text-lg font-bold">{title}</h2>
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className={`modal-card card ${wide ? "wide" : ""}`}>
+        <div className="modal-head">
+          <h2 className="h2">{title}</h2>
           <button className="icon-btn" onClick={onClose} aria-label="Close dialog">
             <Icon name="x" size={17} />
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );
@@ -169,13 +161,13 @@ export function ConfirmModal({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <div className="flex items-start gap-3">
-        <div className="tile shrink-0" style={{ background: "var(--coral-soft)", color: "var(--coral-deep)" }}>
+      <div className="row top">
+        <div className="tile" style={{ background: "var(--coral-soft)", color: "var(--coral-deep)" }}>
           <Icon name="alert" size={20} />
         </div>
-        <p className="text-sm text-[var(--ink2)]">{body}</p>
+        <p className="txt-s soft">{body}</p>
       </div>
-      <div className="mt-6 flex justify-end gap-2">
+      <div className="modal-foot">
         <button className="btn btn-ghost" onClick={onClose}>
           Cancel
         </button>
@@ -210,13 +202,9 @@ export function Toggle({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className="relative h-[26px] w-[46px] flex-none rounded-full transition-colors duration-200"
-      style={{ background: checked ? "var(--leaf)" : "var(--line2)" }}
+      className={`switch ${checked ? "on" : ""}`}
     >
-      <span
-        className="absolute top-[3px] h-5 w-5 rounded-full bg-white shadow transition-all duration-200"
-        style={{ left: checked ? 23 : 3 }}
-      />
+      <span className="switch-knob" />
     </button>
   );
 }
@@ -231,16 +219,14 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex rounded-[11px] border border-[var(--line)] bg-[var(--surface2)] p-1">
+    <div className="seg" role="tablist">
       {options.map((o) => (
         <button
           key={o.v}
+          role="tab"
+          aria-selected={value === o.v}
+          className={`seg-btn ${value === o.v ? "on" : ""}`}
           onClick={() => onChange(o.v)}
-          className={`rounded-lg px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200 ${
-            value === o.v
-              ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm"
-              : "text-[var(--mut)] hover:text-[var(--ink2)]"
-          }`}
         >
           {o.label}
         </button>
@@ -294,16 +280,7 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
     .join("")
     .toUpperCase();
   return (
-    <div
-      className="disp grid flex-none place-items-center rounded-full font-bold text-white"
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.38,
-        background: "linear-gradient(135deg, var(--leaf) 0%, var(--teal) 100%)",
-      }}
-      aria-hidden="true"
-    >
+    <div className="avatar" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden="true">
       {initials || "?"}
     </div>
   );
@@ -338,15 +315,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed bottom-24 left-1/2 z-[70] flex w-[min(92vw,380px)] -translate-x-1/2 flex-col gap-2 lg:bottom-6 lg:left-auto lg:right-6 lg:translate-x-0">
+      <div className="toast-stack">
         {items.map((t) => {
           const m = KIND_META[t.kind];
           return (
-            <div key={t.id} className="toast-in card pointer-events-auto flex items-center gap-3 px-4 py-3">
-              <span className="tile !h-8 !w-8 !rounded-lg" style={{ background: m.soft, color: m.color }}>
+            <div key={t.id} className="toast-item card">
+              <span className="tile tile-s" style={{ background: m.soft, color: m.color }}>
                 <Icon name={m.icon} size={16} />
               </span>
-              <p className="text-[13px] font-semibold leading-snug text-[var(--ink)]">{t.msg}</p>
+              <p className="toast-msg">{t.msg}</p>
             </div>
           );
         })}
@@ -369,13 +346,15 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <div className="tile floaty !h-14 !w-14 !rounded-2xl" style={{ background: "var(--leaf-soft)", color: "var(--leaf-deep)" }}>
+    <div className="card empty">
+      <div className="tile tile-l floaty" style={{ background: "var(--leaf-soft)", color: "var(--leaf-deep)" }}>
         <Icon name={icon} size={26} />
       </div>
-      <h3 className="disp text-lg font-bold">{title}</h3>
-      <p className="max-w-xs text-sm text-[var(--mut)]">{sub}</p>
-      {children && <div className="mt-2">{children}</div>}
+      <h3 className="h2">{title}</h3>
+      <p className="txt-s muted" style={{ maxWidth: 300 }}>
+        {sub}
+      </p>
+      {children && <div className="mt-s">{children}</div>}
     </div>
   );
 }

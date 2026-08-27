@@ -209,6 +209,11 @@ const P: Record<string, ReactElement> = {
       <path d="M17 3.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
     </>
   ),
+  cloud: (
+    <>
+      <path d="M7 18.5a4.5 4.5 0 01-.6-8.96 5.5 5.5 0 0110.7-1.1A4.75 4.75 0 0117 18.5z" />
+    </>
+  ),
 };
 
 export type IconName = keyof typeof P;

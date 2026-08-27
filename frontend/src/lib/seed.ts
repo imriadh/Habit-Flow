@@ -164,5 +164,6 @@ export function buildSeed(): AppState {
     settings: { theme: "light", weekStart: 1, notifications: false, coachTips: true },
     habits,
     logs,
+    guest: false,
   };
 }

@@ -44,6 +44,8 @@ export interface AppState {
   settings: Settings;
   habits: Habit[];
   logs: Logs;
+  /** true when running without a Supabase account (data stays on this device) */
+  guest: boolean;
 }
 
 export type DayState =
