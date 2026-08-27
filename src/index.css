@@ -1,0 +1,2 @@
+/* Build shim — the real stylesheet lives in frontend/src/index.css (pure CSS, no framework). */
+@import "../frontend/src/index.css";
