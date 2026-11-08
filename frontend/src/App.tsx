@@ -19,7 +19,7 @@ import { cloudEnabled, onAuthChange, signOutUser } from "./lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 function Inner({ user, ready }: { user: User | null; ready: boolean }) {
-  const { state, enterDemo, exitDemo, resetAll } = useStore();
+  const { state, enterDemo, exitDemo, resetAll, setProfile } = useStore();
   const toast = useToast();
   const [view, setView] = useState<View>({ name: "dashboard" });
   const [modal, setModal] = useState<{ open: boolean; initial: Habit | null }>({ open: false, initial: null });
@@ -81,7 +81,19 @@ function Inner({ user, ready }: { user: User | null; ready: boolean }) {
   }
 
   const authed = !!user || state.guest;
-  if (!authed) return <Auth onDemo={enterDemo} />;
+  if (!authed) {
+    /* Demo build: "signing in" opens the local demo session. Any name/email
+       typed on the auth screen is used to personalise the demo profile. */
+    const handleDemo = (creds?: { name?: string; email?: string }) => {
+      enterDemo();
+      const patch: { name?: string; email?: string } = {};
+      if (creds?.name) patch.name = creds.name;
+      if (creds?.email) patch.email = creds.email;
+      if (Object.keys(patch).length) setProfile(patch);
+      setView({ name: "dashboard" });
+    };
+    return <Auth onDemo={handleDemo} />;
+  }
 
   const handleSignOut = async () => {
     if (user && cloudEnabled) await signOutUser();

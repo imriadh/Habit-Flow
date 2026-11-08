@@ -2,7 +2,16 @@ import { useState, type FormEvent } from "react";
 import { Icon } from "../components/icons";
 import { cloudEnabled, signIn, signUp } from "../lib/supabase";
 
-export function Auth({ onDemo }: { onDemo: () => void }) {
+/**
+ * Auth screen.
+ *
+ * - Cloud build: real Supabase Auth sign-in / registration.
+ * - Demo build (no VITE_SUPABASE_* keys): the same polished form is shown,
+ *   but submitting accepts any details and opens the local demo session —
+ *   nothing is sent anywhere, and the data stays in this browser.
+ *   The typed name/email (if any) personalises the demo profile.
+ */
+export function Auth({ onDemo }: { onDemo: (creds?: { name?: string; email?: string }) => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,6 +23,27 @@ export function Auth({ onDemo }: { onDemo: () => void }) {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setErr("");
+
+    /* ---------------- demo build: any credentials work ---------------- */
+    if (!cloudEnabled) {
+      if (mode === "register") {
+        if (!name.trim()) return setErr("Please tell us your name.");
+        if (password !== confirm) return setErr("Passwords don't match.");
+      }
+      setBusy(true);
+      // small pause so the button reads as a real sign-in, then enter the demo
+      window.setTimeout(
+        () =>
+          onDemo({
+            name: mode === "register" ? name.trim() : undefined,
+            email: email.trim() || undefined,
+          }),
+        450
+      );
+      return;
+    }
+
+    /* ---------------- cloud build: real authentication ---------------- */
     if (!email.trim() || !password) return setErr("Email and password are required.");
     if (password.length < 6) return setErr("Password must be at least 6 characters.");
     if (mode === "register") {
@@ -96,84 +126,69 @@ export function Auth({ onDemo }: { onDemo: () => void }) {
               : "Two minutes to set up. Your future self says thanks."}
           </p>
 
-          {!cloudEnabled && (
-            <div className="demo-note mb-m">
-              <span className="tile tile-s" style={{ background: "var(--teal-soft)", color: "var(--teal-deep)", flex: "none" }}>
-                <Icon name="cloud" size={15} />
-              </span>
-              <span>
-                <b>Cloud sync is off.</b> Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to{" "}
-                <code>frontend/.env</code> (see <code>backend/supabase/schema.sql</code>) to enable real sign-up. For now,
-                explore in demo mode — everything runs locally in your browser.
-              </span>
-            </div>
-          )}
-
-          {cloudEnabled && (
-            <>
-              <div className="tabs mb-m">
-                <button type="button" className={`tab-btn ${mode === "login" ? "on" : ""}`} onClick={() => { setMode("login"); setErr(""); }}>
-                  Sign in
-                </button>
-                <button type="button" className={`tab-btn ${mode === "register" ? "on" : ""}`} onClick={() => { setMode("register"); setErr(""); }}>
-                  Create account
-                </button>
-              </div>
-
-              <form className="stack" onSubmit={submit}>
-                {mode === "register" && (
-                  <div>
-                    <label className="label" htmlFor="auth-name">Name</label>
-                    <input id="auth-name" className="input" placeholder="Alex Carter" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-                  </div>
-                )}
-                <div>
-                  <label className="label" htmlFor="auth-email">Email</label>
-                  <input id="auth-email" className="input" type="email" placeholder="you@campus.edu" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-                </div>
-                <div>
-                  <label className="label" htmlFor="auth-pass">Password</label>
-                  <input id="auth-pass" className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} />
-                </div>
-                {mode === "register" && (
-                  <div>
-                    <label className="label" htmlFor="auth-confirm">Confirm password</label>
-                    <input id="auth-confirm" className="input" type="password" placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
-                  </div>
-                )}
-
-                {err && (
-                  <p className="form-err">
-                    <Icon name="alert" size={15} /> {err}
-                  </p>
-                )}
-
-                <button className="btn btn-primary w-full" style={{ padding: "12px 16px" }} disabled={busy}>
-                  {busy ? <span className="spin" /> : <Icon name={mode === "login" ? "arrowL" : "plus"} size={16} sw={2.2} />}
-                  {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
-                </button>
-              </form>
-
-              <p className="auth-alt mt-m">
-                {mode === "login" ? (
-                  <>New here? <button type="button" onClick={() => setMode("register")}>Create an account</button></>
-                ) : (
-                  <>Already have an account? <button type="button" onClick={() => setMode("login")}>Sign in</button></>
-                )}
-              </p>
-
-              <div className="card-foot" style={{ textAlign: "center" }}>
-                <button type="button" className="btn btn-ghost btn-s" onClick={onDemo}>
-                  <Icon name="spark" size={14} /> or explore the demo (data stays on this device)
-                </button>
-              </div>
-            </>
-          )}
-
-          {!cloudEnabled && (
-            <button className="btn btn-primary w-full" style={{ padding: "12px 16px" }} onClick={onDemo}>
-              <Icon name="spark" size={16} sw={2.2} /> Continue in demo mode
+          <div className="tabs mb-m">
+            <button type="button" className={`tab-btn ${mode === "login" ? "on" : ""}`} onClick={() => { setMode("login"); setErr(""); }}>
+              Sign in
             </button>
+            <button type="button" className={`tab-btn ${mode === "register" ? "on" : ""}`} onClick={() => { setMode("register"); setErr(""); }}>
+              Create account
+            </button>
+          </div>
+
+          <form className="stack" onSubmit={submit}>
+            {mode === "register" && (
+              <div>
+                <label className="label" htmlFor="auth-name">Name</label>
+                <input id="auth-name" className="input" placeholder="Alex Carter" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+              </div>
+            )}
+            <div>
+              <label className="label" htmlFor="auth-email">Email</label>
+              <input id="auth-email" className="input" type="email" placeholder="you@campus.edu" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+            </div>
+            <div>
+              <label className="label" htmlFor="auth-pass">Password</label>
+              <input id="auth-pass" className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} />
+            </div>
+            {mode === "register" && (
+              <div>
+                <label className="label" htmlFor="auth-confirm">Confirm password</label>
+                <input id="auth-confirm" className="input" type="password" placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
+              </div>
+            )}
+
+            {err && (
+              <p className="form-err">
+                <Icon name="alert" size={15} /> {err}
+              </p>
+            )}
+
+            <button className="btn btn-primary w-full" style={{ padding: "12px 16px" }} disabled={busy}>
+              {busy ? <span className="spin" /> : <Icon name={mode === "login" ? "arrowL" : "plus"} size={16} sw={2.2} />}
+              {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+            </button>
+          </form>
+
+          <p className="auth-alt mt-m">
+            {mode === "login" ? (
+              <>New here? <button type="button" onClick={() => setMode("register")}>Create an account</button></>
+            ) : (
+              <>Already have an account? <button type="button" onClick={() => setMode("login")}>Sign in</button></>
+            )}
+          </p>
+
+          {!cloudEnabled && (
+            <p className="txt-s muted" style={{ textAlign: "center", margin: "10px 0 0" }}>
+              Live demo — use any details. They aren't checked, and your data never leaves this browser.
+            </p>
+          )}
+
+          {!cloudEnabled && (
+            <div className="card-foot" style={{ textAlign: "center" }}>
+              <button type="button" className="btn btn-ghost btn-s" onClick={() => onDemo()}>
+                <Icon name="spark" size={14} /> Skip — explore the demo instantly
+              </button>
+            </div>
           )}
         </div>
       </div>
