@@ -154,7 +154,9 @@ export function Profile({ onSignOut }: { onSignOut: () => void }) {
                 <p className="txt-xs muted">
                   {cloudEnabled && !state.guest
                     ? "Habits and logs sync to your Supabase database."
-                    : "Sign in (or create an account) to sync your habits across devices."}
+                    : !cloudEnabled
+                      ? "Everything you add is saved on this device and will be here when you return."
+                      : "Sign in (or create an account) to sync your habits across devices."}
                 </p>
               </div>
             </div>
@@ -258,9 +260,13 @@ export function SettingsView({ onReset }: { onReset: () => void }) {
       <Reveal delay={150}>
         <section className="card pad-l">
           <p className="tag mb-s">Data</p>
-          <Row icon="cloud" title="Cloud sync" sub={cloudEnabled ? "Supabase connected — changes are saved to your account." : "Offline — add Supabase keys in frontend/.env to enable."}>
-            <span className="badge" style={{ background: cloudEnabled ? "var(--leaf-soft)" : "var(--gold-soft)", color: cloudEnabled ? "var(--leaf-deep)" : "var(--gold-deep)" }}>
-              {cloudEnabled ? "Connected" : "Off"}
+          <Row
+            icon={cloudEnabled ? "cloud" : "leaf"}
+            title={cloudEnabled ? "Cloud sync" : "Local storage"}
+            sub={cloudEnabled ? "Supabase connected — changes are saved to your account." : "Your habits are saved in this browser — nothing is sent to a server."}
+          >
+            <span className="badge" style={{ background: "var(--leaf-soft)", color: "var(--leaf-deep)" }}>
+              {cloudEnabled ? "Connected" : "Saved locally"}
             </span>
           </Row>
           <Row icon="download" title="Export data" sub="Download everything as JSON — it's your data.">

@@ -87,7 +87,9 @@ export function Auth({ onDemo }: { onDemo: (creds?: { name?: string; email?: str
               ["check", "One-tap daily check-ins & measurable targets"],
               ["flame", "Streaks that survive real life — skip, don't break"],
               ["spark", "Private AI insights computed from your own history"],
-              ["cloud", "Synced to Supabase — your data follows your account"],
+              cloudEnabled
+                ? ["cloud", "Synced to Supabase — your data follows your account"]
+                : ["leaf", "Private by design — your data stays on this device"],
             ].map(([ic, txt]) => (
               <div key={txt} className="auth-feat">
                 <span className="auth-feat-ic">
